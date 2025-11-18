@@ -132,15 +132,17 @@ class DepoimentosCarousel {
     this.startAutoPlay();
 
     // Pause on hover
-    this.track.addEventListener("mouseenter", () => this.stopAutoPlay());
-    this.track.addEventListener("mouseleave", () => this.startAutoPlay());
+    this.track?.addEventListener("mouseenter", () => this.stopAutoPlay());
+    this.track?.addEventListener("mouseleave", () => this.startAutoPlay());
 
     // Touch/swipe support
     this.addTouchSupport();
   }
 
   updateCarousel() {
-    this.track.style.transform = `translateX(-${this.currentSlide * 100}%)`;
+    if (this.track) {
+      this.track.style.transform = `translateX(-${this.currentSlide * 100}%)`;
+    }
 
     // Update active states
     this.slides.forEach((slide, index) => {
@@ -181,6 +183,8 @@ class DepoimentosCarousel {
   }
 
   addTouchSupport() {
+    if (!this.track) return;
+
     let startX = 0;
     let currentX = 0;
 
@@ -269,25 +273,26 @@ document.querySelectorAll(".image-comparison").forEach((comparison) => {
 // Formulário de Contato
 const formContato = document.getElementById("form-contato");
 
-formContato.addEventListener("submit", (e) => {
-  e.preventDefault();
+if (formContato) {
+  formContato.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-  const nome = document.getElementById("nome").value;
-  const telefone = document.getElementById("telefone").value;
-  const tratamento = document.getElementById("tratamento").value;
-  const mensagem = document.getElementById("mensagem").value;
+    const nome = document.getElementById("nome").value;
+    const telefone = document.getElementById("telefone").value;
+    const tratamento = document.getElementById("tratamento").value;
+    const mensagem = document.getElementById("mensagem").value;
 
-  // Validação
-  if (!nome || !telefone || !tratamento) {
-    showNotification(
-      "Por favor, preencha todos os campos obrigatórios.",
-      "error"
-    );
-    return;
-  }
+    // Validação
+    if (!nome || !telefone || !tratamento) {
+      showNotification(
+        "Por favor, preencha todos os campos obrigatórios.",
+        "error"
+      );
+      return;
+    }
 
-  // Formatar mensagem para WhatsApp
-  const texto = `🦷 *Consulta - Dr. Rafael Ferreira*
+    // Formatar mensagem para WhatsApp
+    const texto = `🦷 *Consulta - Dr. Rafael Ferreira*
 
 *Nome:* ${nome}
 *Telefone:* ${telefone}
@@ -296,39 +301,45 @@ ${mensagem ? `*Mensagem:* ${mensagem}` : ""}
 
 _*Estou interessado(a) em agendar uma consulta!*_`;
 
-  // Codificar mensagem para URL
-  const textoCodificado = encodeURIComponent(texto);
+    // Codificar mensagem para URL
+    const textoCodificado = encodeURIComponent(texto);
 
-  // Redirecionar para WhatsApp
-  window.open(`https://wa.me/5581999680343?text=${textoCodificado}`, "_blank");
+    // Redirecionar para WhatsApp
+    window.open(
+      `https://wa.me/5581999680343?text=${textoCodificado}`,
+      "_blank"
+    );
 
-  // Feedback visual
-  showNotification("Redirecionando para o WhatsApp...", "success");
+    // Feedback visual
+    showNotification("Redirecionando para o WhatsApp...", "success");
 
-  // Reset form
-  setTimeout(() => {
-    formContato.reset();
-  }, 1000);
-});
+    // Reset form
+    setTimeout(() => {
+      formContato.reset();
+    }, 1000);
+  });
+}
 
 // Máscara para telefone
 const telefoneInput = document.getElementById("telefone");
 
-telefoneInput.addEventListener("input", (e) => {
-  let value = e.target.value.replace(/\D/g, "");
+if (telefoneInput) {
+  telefoneInput.addEventListener("input", (e) => {
+    let value = e.target.value.replace(/\D/g, "");
 
-  if (value.length > 11) {
-    value = value.substring(0, 11);
-  }
+    if (value.length > 11) {
+      value = value.substring(0, 11);
+    }
 
-  if (value.length <= 10) {
-    value = value.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
-  } else {
-    value = value.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3");
-  }
+    if (value.length <= 10) {
+      value = value.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
+    } else {
+      value = value.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3");
+    }
 
-  e.target.value = value;
-});
+    e.target.value = value;
+  });
+}
 
 // Sistema de Notificações
 function showNotification(message, type = "info") {
@@ -355,6 +366,7 @@ function showNotification(message, type = "info") {
         transform: translateX(400px);
         transition: transform 0.3s ease;
         max-width: 400px;
+        width: 90vw;
     `;
 
   document.body.appendChild(notification);
@@ -441,49 +453,36 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }, 500);
 
-  // Efeito de digitação no hero (opcional)
-  const heroTitle = document.querySelector(".hero-title");
-  if (heroTitle) {
-    const text = heroTitle.textContent;
-    heroTitle.textContent = "";
-    let i = 0;
-
-    function typeWriter() {
-      if (i < text.length) {
-        heroTitle.textContent += text.charAt(i);
-        i++;
-        setTimeout(typeWriter, 50);
-      }
-    }
-  }
-
   // Contador animado para estatísticas
   const statNumbers = document.querySelectorAll(".stat-number");
-  const observer = new IntersectionObserver((entries) => {
+  const statsObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
         animateNumbers();
-        observer.disconnect();
+        statsObserver.disconnect();
       }
     });
   });
 
-  observer.observe(document.querySelector(".hero-stats"));
+  const heroStats = document.querySelector(".hero-stats");
+  if (heroStats) {
+    statsObserver.observe(heroStats);
+  }
 
   function animateNumbers() {
     statNumbers.forEach((stat) => {
-      const target = parseInt(stat.textContent);
+      const targetText = stat.textContent;
+      const isPlus = targetText.includes("+");
+      const target = parseInt(targetText.replace("+", "")) || 0;
       let current = 0;
       const increment = target / 50;
       const timer = setInterval(() => {
         current += increment;
         if (current >= target) {
-          stat.textContent =
-            target + (stat.textContent.includes("+") ? "+" : "");
+          stat.textContent = target + (isPlus ? "+" : "");
           clearInterval(timer);
         } else {
-          stat.textContent =
-            Math.floor(current) + (stat.textContent.includes("+") ? "+" : "");
+          stat.textContent = Math.floor(current) + (isPlus ? "+" : "");
         }
       }, 30);
     });
@@ -504,4 +503,21 @@ window.addEventListener("resize", function () {
   resizeTimeout = setTimeout(function () {
     // Recarregar funcionalidades que dependem do tamanho da tela
   }, 250);
+});
+
+// CORREÇÃO: Prevenir qualquer scroll horizontal
+window.addEventListener("scroll", function () {
+  if (window.scrollX !== 0) {
+    window.scrollTo(0, window.scrollY);
+  }
+});
+
+// CORREÇÃO: Garantir que imagens não causem overflow
+document.querySelectorAll("img").forEach((img) => {
+  img.addEventListener("load", function () {
+    if (this.naturalWidth > window.innerWidth) {
+      this.style.maxWidth = "100%";
+      this.style.height = "auto";
+    }
+  });
 });
